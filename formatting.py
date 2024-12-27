@@ -63,12 +63,15 @@ def write_label(df):
         labels.append(label)
     return indexes, labels
 
-def width_format(month):
-    if month == 1:
-        return 0.75, 2
-    if month == 3:
-        return 0.55, 1.4
-    if month == 6:
-        return 0.45, 1
-    if month == 12:
-        return 0.2, 0.55
+def format_vol(volume):
+    if volume < 1000:
+        return str(volume)
+    elif volume < 1000000:
+        vol = volume/1000
+        return str(round(vol,3)) + 'K'
+    elif volume < 1000000000:
+        vol = volume / 1000000
+        return str(round(vol,3)) + 'M'
+    else:
+        vol = volume / 1000000000
+        return str(round(vol, 3)) + 'B'
