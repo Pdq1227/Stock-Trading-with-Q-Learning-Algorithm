@@ -147,10 +147,6 @@ def load_model():
     canvas.get_tk_widget().pack()
     canvas.mpl_connect('motion_notify_event', on_move_model)
 
-    # Update stock name
-    stock_name.config(text=ticker)
-
-
 
 def training():
     #Initialize
