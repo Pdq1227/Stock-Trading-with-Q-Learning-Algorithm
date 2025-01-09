@@ -53,8 +53,10 @@ def on_move_model(event):
             ydata = data_draw.iloc[xdata]
             date_txt = str(ydata['Date'].day) + "-" + str(ydata['Date'].month) + "-" + str(ydata['Date'].year)
             ohlc_txt = '%AC: ' + str(round(ydata['Capital_Change'],2)) + ' Buy-and-Hold: ' + str(round(ydata['Price_Change'],2))
+            bb20_txt = 'Active action: ' + ydata['ActiveAction'] if ydata['ActiveAction'] in ['buy','sell'] else 'Active action: nothing'
             date_lb.config(text=date_txt)
             ohlc_lb.config(text=ohlc_txt)
+            bb20_lb.config(text=bb20_txt)
         except Exception as e:
             pass
 
@@ -112,7 +114,7 @@ def load_model():
     test_rois_trained = np.load(dir_path+'//test_rois.npy').tolist()
     max_test_roi_id = test_rois_trained.index(max(test_rois_trained))
     data_draw = pd.read_csv(csv_path + '//Test'+str(max_test_roi_id+1)+'.csv', parse_dates=[5]).reset_index()
-
+    data_draw['action_draw'] = [1 if data_draw.iloc[i]['ActiveAction'] == 'buy' else -1 if data_draw.iloc[i]['ActiveAction'] == 'sell' else 0 for i in range(len(data_draw))]
     # Hidden irrelevant data
     if canvas is not None:
         canvas.get_tk_widget().pack_forget()
@@ -127,10 +129,8 @@ def load_model():
     # Draw chart
     xticks, labels = formatting.write_label(data_draw)
     matplotlib.rc('axes', edgecolor='white')
-    colors = ['#39FF14' if (data_draw.iloc[i]['Close'] >= data_draw.iloc[i]['Open']) else '#FD1C03' for i in
-              range(len(data_draw))]
     fig = Figure(figsize=(17.2, 9.25), facecolor='black')
-    spec = gridspec.GridSpec(ncols=1, nrows=1, left=0.03, right=0.997, bottom=0.03, top=0.995, hspace=0)
+    spec = gridspec.GridSpec(ncols=1, nrows=2, left=0.03, right=0.997, bottom=0.03, top=0.995, hspace=0, height_ratios=[4, 1])
     ax1 = fig.add_subplot(spec[0])
     ax1.tick_params(axis='x', colors='white')
     ax1.tick_params(axis='y', colors='white')
@@ -138,8 +138,19 @@ def load_model():
     ax1.plot(data_draw['index'], data_draw['Capital_Change'], c='yellow', linewidth=1)
     ax1.set_xlim(-1, len(data_draw))
     ax1.set_xticks(xticks)
-    ax1.set_xticklabels(labels)
+    ax1.set_xticklabels([])
     ax1.xaxis.grid(color='white', linewidth=0.3, linestyle='-')
+    ax2 = fig.add_subplot(spec[1])
+    ax2.tick_params(axis='x', colors='white')
+    ax2.tick_params(axis='y', colors='white')
+    ax2.plot(data_draw['index'], data_draw['action_draw'], c='cyan', linewidth=1)
+    ax2.set_xticks(xticks)
+    ax2.set_xticklabels(labels)
+    ax2.set_yticks([-1,0,1])
+    ax2.set_yticklabels(['sell','none','buy'])
+    ax2.set_xlim(-1, len(data_draw))
+    ax2.set_ylim(-1.5, 1.5)
+    ax2.xaxis.grid(color='white', linewidth=0.3, linestyle='-')
 
     # Connect chart
     canvas = FigureCanvasTkAgg(fig, master=chart_canvas)
@@ -376,4 +387,5 @@ bookmark_canvas.create_window(145, 150, window=close2)
 stock_pct2 = tk.Label(root, text="-0.99 (-0.43%)",width=11, bg="light grey", anchor="e",fg="red")
 stock_pct2.config(font=but_font)
 bookmark_canvas.create_window(135, 170, window=stock_pct2)
+
 root.mainloop()
