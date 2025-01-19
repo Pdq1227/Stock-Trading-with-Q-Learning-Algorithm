@@ -2,12 +2,12 @@ import math
 import tkinter as tk
 import tkinter.font as tfont
 import warnings
+from calendar import month
 from tkinter import *
 from tkinter.ttk import Combobox
 import numpy as np
 import os
-from datetime import datetime
-
+from datetime import datetime, timedelta
 
 import matplotlib
 import matplotlib.pyplot as plt
@@ -85,14 +85,36 @@ def on_move_chart(event):
 
 
 def add_stock():
-    if ticker_in.get() is not None:
-        ticker = ticker_in.get()
+    if ticker_in.get() != "":
+        ticker = ticker_in.get().upper()
     else:
-        print('Nothing was inputted')
+        print('No stock was inputted')
         return
-    stock_id = Vnstock().stock(symbol=ticker, source='VCI')
-    df = stock_id.quote.history(start='2019-01-01', end='2024-12-26')
-    pass
+    if ticker in stocks:
+        print('Duplicate stock found')
+        return
+    try:
+        stock_id = Vnstock().stock(symbol=ticker, source='VCI')
+        one_week = (datetime.today() - timedelta(7)).strftime('%Y-%m-%d')
+        df_close = stock_id.quote.history(start=one_week, end=today)
+    except ValueError as e:
+        print('Stock not found')
+        return
+    stock = tk.Label(root, text=ticker, width=9, bg="light grey", anchor="w")
+    stocks.append(ticker)
+    close_price = df_close.iloc[len(df_close)-1]['close']
+    delta_close = close_price - df_close.iloc[len(df_close)-2]['close']
+    pct_change = delta_close/df_close.iloc[len(df_close)-2]['close']*100
+    fg_color = 'red' if pct_change < 0 else 'green'
+    close = tk.Label(root, text=str(round(close_price,2)), width=9, bg="light grey", anchor="e", fg=fg_color)
+    pct = tk.Label(root, text=str(round(delta_close,2))+" ("+str(round(pct_change,2))+"%)", width=15, bg="light grey", anchor="e", fg=fg_color)
+    close.config(font=but_font)
+    pct.config(font=but_font)
+    stock.config(font=but_font)
+    bookmark_canvas.create_window(45, 40 + 50*(len(stocks)), window=stock)
+    bookmark_canvas.create_window(145, 40 + 50 * (len(stocks)), window=close)
+    bookmark_canvas.create_window(120, 60 + 50 * (len(stocks)), window=pct)
+
 
 
 def load_model():
@@ -302,7 +324,6 @@ bookmark_canvas.grid(row=1, column=1, rowspan=2)
 
 # Fonts
 light_font = tfont.Font(family="Body", size=15, weight="bold")
-light2_font = tfont.Font(family="Body", size=11, weight="bold")
 but_font = tfont.Font(family="Body", size=12)
 
 # Searchbar
@@ -362,30 +383,13 @@ ticker_in = StringVar(root)
 bookmark_lb = tk.Label(root, text="Bookmark",width=15, bg="light grey", anchor="center")
 bookmark_lb.config(font=light_font)
 bookmark_canvas.create_window(95, 22, window=bookmark_lb)
-add_options = ['VNINDEX','HNXINDEX'] + tickers
+add_options = ['VNINDEX','HNXINDEX','VN30'] + tickers
 add_in = Combobox(root, textvariable=ticker_in, values=add_options)
 add_in.config(width=10)
-add_button = tk.Button(root, text="Add ticker", command=lambda: add_stock, bg="light grey")
+add_button = tk.Button(root, text="Add ticker", command=lambda: add_stock(), bg="light grey")
 add_button.config(font=but_font)
 bookmark_canvas.create_window(50, 55, window=add_in)
 bookmark_canvas.create_window(140, 55, window=add_button)
-stock_name1 = tk.Label(root, text="VNINDEX",width=9, bg="light grey", anchor="w")
-stock_name1.config(font=but_font)
-bookmark_canvas.create_window(45, 100, window=stock_name1)
-close1 = tk.Label(root, text="1272.02",width=9, bg="light grey", anchor="e", fg="red")
-close1.config(font=but_font)
-bookmark_canvas.create_window(145, 100, window=close1)
-stock_pct1 = tk.Label(root, text="-2.47 (-0.19%)",width=11, bg="light grey", anchor="e", fg="red")
-stock_pct1.config(font=but_font)
-bookmark_canvas.create_window(135, 120, window=stock_pct1)
-stock_name2 = tk.Label(root, text="HNXINDEX",width=9, bg="light grey", anchor="w")
-stock_name2.config(font=but_font)
-bookmark_canvas.create_window(45, 150, window=stock_name2)
-close2 = tk.Label(root, text="228.14",width=9, bg="light grey", anchor="e", fg="red")
-close2.config(font=but_font)
-bookmark_canvas.create_window(145, 150, window=close2)
-stock_pct2 = tk.Label(root, text="-0.99 (-0.43%)",width=11, bg="light grey", anchor="e",fg="red")
-stock_pct2.config(font=but_font)
-bookmark_canvas.create_window(135, 170, window=stock_pct2)
+stocks = []
 
 root.mainloop()
