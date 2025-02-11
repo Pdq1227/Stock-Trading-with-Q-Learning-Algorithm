@@ -133,9 +133,9 @@ def load_model():
         print('Stock ' + ticker + ' not trained')
         return
     csv_path = dir_path + '//csv//Test'
-    test_rois_trained = np.load(dir_path+'//test_rois.npy').tolist()
-    max_test_roi_id = test_rois_trained.index(max(test_rois_trained))
-    data_draw = pd.read_csv(csv_path + '//Test'+str(max_test_roi_id+1)+'.csv', parse_dates=[5]).reset_index()
+    #test_rois_trained = np.load(dir_path+'//test_rois.npy').tolist()
+    #max_test_roi_id = test_rois_trained.index(max(test_rois_trained))
+    data_draw = pd.read_csv(csv_path + '//Test.csv', parse_dates=[5]).reset_index()
     data_draw['action_draw'] = [1 if data_draw.iloc[i]['ActiveAction'] == 'buy' else -1 if data_draw.iloc[i]['ActiveAction'] == 'sell' else 0 for i in range(len(data_draw))]
     # Hidden irrelevant data
     if canvas is not None:

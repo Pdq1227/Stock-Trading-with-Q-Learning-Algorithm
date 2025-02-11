@@ -252,6 +252,8 @@ class Model:
         self.agent.update_data(data_test)
         self.cfg.update_episode(30)
         test_rois = []
+        best_test = 0
+        best_df = data_test
         for i in range(self.cfg.episode):
             state = self.agent.get_state(0)
             action = self.agent.get_action(state)
@@ -403,10 +405,12 @@ class Model:
             df_test['Price_Change'] = (df_test['Close'] - df_test['Close'][0]) / df_test['Close'][0] * 100
             df_test['Capital_Change'] = (df_test['Cash'] - df_test['Cash'][0]) / df_test['Cash'][0] * 100
             roi = (df_test['Cash'][len(df_test) - 1] - df_test['Cash'][0]) / df_test['Cash'][0] * 100
+            if roi > best_test:
+                best_df = df_test
+                best_test = roi
+            #test_rois.append(roi)
 
-            df_test.to_csv(self.dir_path + '//csv//Test//Test'+str(i+1)+'.csv')
-            test_rois.append(roi)
-
+        best_df.to_csv(self.dir_path + '//csv//Test//Test' + '.csv')
         self.test_rois = test_rois
         np.save(self.dir_path+'//train_rois.npy',self.train_rois)
         np.save(self.dir_path+'//test_rois.npy',self.test_rois)
