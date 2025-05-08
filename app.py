@@ -15,7 +15,7 @@ import pandas as pd
 from matplotlib import gridspec
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
-from vnstock3 import Vnstock
+from vnstock import Vnstock
 
 import calculations
 import formatting
@@ -35,7 +35,6 @@ output_path = curr_path + '//outputs//'
 warnings.filterwarnings("ignore")
 pd.options.mode.chained_assignment = None
 
-stock_market = Vnstock().stock(source='VCI')
 data_draw = None
 canvas = None
 today = datetime.today().strftime('%Y-%m-%d')
@@ -332,10 +331,10 @@ stock_lb.config(font=light_font)
 idx_in = StringVar(root)
 stock_in = StringVar(root)
 options = ['VNINDEX - Chỉ số VNINDEX','HNXINDEX - Chỉ số HNXINDEX']
-tickers = stock_market.listing.all_symbols()['ticker'].tolist()
-organ_names = stock_market.listing.all_symbols()['organ_name'].tolist()
-for i in range(len(stock_market.listing.all_symbols())):
-    option = tickers[i] + ' - ' + organ_names[i]
+tickers = Vnstock().stock().listing.all_symbols().dropna()['symbol'].tolist()
+organ_names = Vnstock().stock().listing.all_symbols().dropna()['organ_name'].tolist()
+for i in range(len(tickers)):
+    option = tickers[i] + " - " + organ_names[i]
     options.append(option)
 drop_stock = Combobox(root, textvariable=stock_in, values=options)
 drop_stock.config(width=100)
